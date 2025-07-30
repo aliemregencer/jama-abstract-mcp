@@ -4,13 +4,13 @@ description: "JAMA tıp dergisi makalelerinden abstract görselleri oluşturmak 
 
 server:
   command: python
-  args: ["main.py", "--transport", "stdio"]
+  args: ["main.py"]
   env:
     PYTHONPATH: "."
     PYTHONUNBUFFERED: "1"
 
-# FastMCP tools otomatik olarak detect edilir
-# Capabilities kısmı gereksiz
+# FastMCP otomatik olarak @mcp.tool() decorator'larını detect eder
+# Tools kısmına manuel olarak eklemeye gerek yok
 
 install:
   pip:

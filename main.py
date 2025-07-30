@@ -29,6 +29,9 @@ logger = logging.getLogger(__name__)
 # FastMCP server instance
 mcp = fastmcp.FastMCP("jama-abstract-mcp")
 
+# Tool'ları explicit olarak export et
+__all__ = ["extract_jama_article", "analyze_existing_visual", "generate_visual_data", "full_pipeline"]
+
 @mcp.tool()
 async def extract_jama_article(url: str) -> Dict[str, Any]:
     """
@@ -40,6 +43,9 @@ async def extract_jama_article(url: str) -> Dict[str, Any]:
     Returns:
         Çıkarılan makale verileri (başlık, yazarlar, özet, vb.)
     """
+    return await _extract_jama_article(url)
+
+async def _extract_jama_article(url: str) -> Dict[str, Any]:
     try:
         logger.info(f"JAMA makale çıkarma başlıyor: {url}")
         
@@ -80,6 +86,9 @@ async def analyze_existing_visual(image_url: str) -> Dict[str, Any]:
     Returns:
         Görsel analiz sonuçları (renkler, layout, tipografi)
     """
+    return await _analyze_existing_visual(image_url)
+
+async def _analyze_existing_visual(image_url: str) -> Dict[str, Any]:
     try:
         logger.info(f"Görsel analiz başlıyor: {image_url}")
         
@@ -108,6 +117,9 @@ async def generate_visual_data(article_data: Dict[str, Any], style_preferences: 
     Returns:
         Görsel oluşturma için hazırlanmış tasarım verileri
     """
+    return await _generate_visual_data(article_data, style_preferences)
+
+async def _generate_visual_data(article_data: Dict[str, Any], style_preferences: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
     try:
         logger.info("Görsel tasarım verileri oluşturuluyor")
         
@@ -136,11 +148,14 @@ async def full_pipeline(url: str, analyze_existing: bool = True) -> Dict[str, An
     Returns:
         Tüm işlem sonuçları
     """
+    return await _full_pipeline(url, analyze_existing)
+
+async def _full_pipeline(url: str, analyze_existing: bool = True) -> Dict[str, Any]:
     try:
         logger.info(f"Full pipeline başlıyor: {url}")
         
         # 1. Makale verilerini çıkar
-        article_result = await extract_jama_article(url)
+        article_result = await _extract_jama_article(url)
         if not article_result.get("success"):
             return article_result
         
@@ -150,12 +165,12 @@ async def full_pipeline(url: str, analyze_existing: bool = True) -> Dict[str, An
         # 2. Mevcut görseli analiz et (varsa)
         if analyze_existing and article_data.get("existing_visual_url"):
             logger.info("Mevcut görsel analiz ediliyor")
-            visual_analysis = await analyze_existing_visual(article_data["existing_visual_url"])
+            visual_analysis = await _analyze_existing_visual(article_data["existing_visual_url"])
             result["visual_analysis"] = visual_analysis
         
         # 3. Yeni görsel verileri oluştur
         style_prefs = result.get("visual_analysis", {}).get("analysis")
-        visual_data = await generate_visual_data(article_data, style_prefs)
+        visual_data = await _generate_visual_data(article_data, style_prefs)
         result["visual_data"] = visual_data
         
         logger.info("Full pipeline tamamlandı")
