@@ -1,5 +1,7 @@
 # JAMA Abstract MCP
 
+[![smithery badge](https://smithery.ai/badge/@aliemregencer/jama-abstract-mcp)](https://smithery.ai/server/@aliemregencer/jama-abstract-mcp)
+
 JAMA tıp dergisi makalelerinden otomatik abstract görselleri oluşturmak için MCP (Model Context Protocol) servisi.
 
 ## 🎯 Amaç
@@ -25,6 +27,14 @@ jama-abstract-mcp/
 ```
 
 ## 🚀 Kurulum
+
+### Installing via Smithery
+
+To install JAMA Abstract Visual Generator for Claude Desktop automatically via [Smithery](https://smithery.ai/server/@aliemregencer/jama-abstract-mcp):
+
+```bash
+npx -y @smithery/cli install @aliemregencer/jama-abstract-mcp --client claude
+```
 
 ### 1. Repository'yi klonlayın
 ```bash
