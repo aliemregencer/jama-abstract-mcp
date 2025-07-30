@@ -47,8 +47,8 @@ async def extract_jama_article(url: str) -> Dict[str, Any]:
         if "jamanetwork.com" not in url:
             return {"error": "Geçersiz JAMA URL'si"}
         
-        # Scraper ile veri çıkarma
-        scraper = JAMAScraper()
+        # Scraper ile veri çıkarma (Smithery için optimize edildi)
+        scraper = JAMAScraper(headless=True, timeout=8)
         html_content = await scraper.scrape_article(url)
         
         if not html_content:
