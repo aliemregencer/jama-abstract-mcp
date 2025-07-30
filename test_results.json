@@ -1,0 +1,103 @@
+{
+  "title": "Diagnosis of Autism",
+  "authors": [],
+  "abstract": {
+    "full": "Get Access"
+  },
+  "keywords": [],
+  "publication_date": "2024/01/16",
+  "journal_info": {},
+  "doi": "10.1001/jama.2023.24155",
+  "article_type": null,
+  "existing_visual_url": null,
+  "full_text_preview": "",
+  "metadata": {
+    "viewport": "width=device-width, initial-scale=1",
+    "format-detection": "telephone=no",
+    "og:title": "Diagnosis of Autism",
+    "og:type": "Article",
+    "og:url": "https://jamanetwork.com/journals/jama/fullarticle/2813888",
+    "og:image": "https://cdn.jamanetwork.com/images/logos/JAMA.png",
+    "og:description": "To the Editor Deficits in nonverbal communicative behaviors used for social interaction are manifested by absent, reduced, or atypical use of eye contact. The study by Jones et al1 is an important step toward the development of reliable diagnostic aids for autism spectrum disorders. My concern...",
+    "fb:pages": "110245330325636",
+    "twitter:card": "summary",
+    "twitter:site": "@JAMA_current",
+    "twitter:image": "https://cdn.jamanetwork.com/images/logos/JAMA.png",
+    "citation_author": "Nicola Cirillo",
+    "citation_author_institution": "Faculty of Medicine, Dentistry and Health Sciences, University of Melbourne, Melbourne, Australia",
+    "citation_title": "Diagnosis of Autism",
+    "citation_firstpage": "259",
+    "citation_lastpage": "259",
+    "citation_doi": "10.1001/jama.2023.24155",
+    "citation_journal_title": "JAMA",
+    "citation_journal_abbrev": "JAMA",
+    "citation_volume": "331",
+    "citation_issue": "3",
+    "citation_publication_date": "2024/01/16",
+    "citation_issn": "0098-7484",
+    "citation_publisher": "American Medical Association",
+    "citation_reference": "US Centers for Disease Control and Prevention. Screening and diagnosis of autism spectrum disorder for healthcare providers: diagnostic tools. https://www.cdc.gov/ncbddd/autism/hcp-screening.html#DiagnosticTools ",
+    "citation_pdf_url": "https://jamanetwork.com/journals/jama/articlepdf/2813888/jama_cirillo_2024_le_230144_1704388771.19321.pdf",
+    "citation_xml_url": "https://datafeed.jamanetwork.com/journals/jama/xml/2813888",
+    "description": "To the Editor Deficits in nonverbal communicative behaviors used for social interaction are manifested by absent, reduced, or atypical use of eye contact.",
+    "publish_date": "2024-01-16",
+    "product_code": "I_939302",
+    "structured_data": [
+      {
+        "@context": "https://schema.org/",
+        "@type": "MedicalScholarlyArticle",
+        "headline": "Diagnosis of Autism",
+        "author": "Nicola Cirillo, DMD, LDS, MDS, MClinRes, DipPH, GCEd, PhD",
+        "url": "https://jamanetwork.com/journals/jama/fullarticle/2813888",
+        "datePublished": "2024-01-16",
+        "description": "To the Editor Deficits in nonverbal communicative behaviors used for social interaction are manifested by absent, reduced, or atypical use of eye contact. The study by Jones et al 1 is an important step toward the development of reliable diagnostic aids for autism spectrum disorders. My concern relates to the formulation of expert clinician diagnosis, which is central to the determination of the sensitivity and specificity of the eye-tracking measurement of social visual engagement for autism diagnoses.",
+        "publisher": {
+          "@type": "Organization",
+          "name": "JAMA Network",
+          "logo": {
+            "@type": "ImageObject",
+            "url": "//cdn.jamanetwork.com/UI/app/img/favicons/jama/favicon.ico"
+          }
+        },
+        "image": [
+          "https://cdn.jamanetwork.com/Images/Logos/JAMA.png"
+        ],
+        "articleSection": [
+          "Article Information",
+          "References"
+        ],
+        "keyWords": ""
+      },
+      {
+        "@context": "http://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "item": {
+              "@id": "https://jamanetwork.com/",
+              "name": "JAMA Network"
+            }
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "item": {
+              "@id": "https://jamanetwork.com/journals/jama",
+              "name": "JAMA"
+            }
+          },
+          {
+            "@type": "ListItem",
+            "position": 3,
+            "item": {
+              "@id": "https://jamanetwork.com/journals/jama/fullarticle/2813888",
+              "name": "Diagnosis of Autism"
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -171,6 +171,7 @@ async def full_pipeline(url: str, analyze_existing: bool = True) -> Dict[str, An
 
 if __name__ == "__main__":
     import argparse
+    import os
 
     parser = argparse.ArgumentParser(description="JAMA Abstract MCP Server")
     parser.add_argument("--transport", choices=["stdio", "http"], default="stdio",
@@ -182,9 +183,14 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    if args.transport == "http":
-        logger.info(f"Starting HTTP server on {args.host}:{args.port}")
-        mcp.run(transport="http", host=args.host, port=args.port)
+    # Smithery için environment variable kontrolü
+    transport = os.getenv("MCP_TRANSPORT", args.transport)
+    host = os.getenv("MCP_HOST", args.host)
+    port = int(os.getenv("MCP_PORT", args.port))
+
+    if transport == "http":
+        logger.info(f"Starting HTTP server on {host}:{port}")
+        mcp.run(transport="http", host=host, port=port)
     else:
         logger.info("Starting STDIO server")
         mcp.run()

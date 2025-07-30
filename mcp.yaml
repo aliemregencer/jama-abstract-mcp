@@ -4,9 +4,10 @@ description: "JAMA tıp dergisi makalelerinden abstract görselleri oluşturmak 
 
 server:
   command: python
-  args: ["main.py"]
+  args: ["main.py", "--transport", "stdio"]
   env:
     PYTHONPATH: "."
+    PYTHONUNBUFFERED: "1"
 
 # FastMCP tools otomatik olarak detect edilir
 # Capabilities kısmı gereksiz
