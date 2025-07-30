@@ -184,7 +184,7 @@ if __name__ == "__main__":
 
     if args.transport == "http":
         logger.info(f"Starting HTTP server on {args.host}:{args.port}")
-        mcp.run(transport="http", host=args.host, port=args.port, path="/mcp")
+        mcp.run(transport="http", host=args.host, port=args.port)
     else:
         logger.info("Starting STDIO server")
         mcp.run()
