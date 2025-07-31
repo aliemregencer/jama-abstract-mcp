@@ -1,6 +1,6 @@
 name: jama-abstract-mcp
 version: "1.0.0"
-description: "JAMA tıp dergisi makalelerinden abstract görselleri oluşturmak için veri çıkarma MCP servisi"
+description: "JAMA tıp dergisi makalelerinden veri çıkarma MCP servisi"
 
 server:
   command: python
@@ -18,11 +18,6 @@ install:
     - selenium>=4.15.0
     - beautifulsoup4>=4.12.0
     - requests>=2.31.0
-    - Pillow>=10.1.0
-    - opencv-python>=4.8.0
-    - numpy>=1.24.0
-    - scikit-learn>=1.3.0
-    - pandas>=2.1.0
     - aiohttp>=3.9.0
     - typing-extensions>=4.8.0
     - webdriver-manager>=4.0.0

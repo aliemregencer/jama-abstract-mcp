@@ -1,23 +1,21 @@
 # JAMA Abstract MCP
 
-JAMA tıp dergisi makalelerinden abstract görselleri oluşturmak için veri çıkarma MCP servisi.
+JAMA tıp dergisi makalelerinden veri çıkarma MCP servisi.
 
-## 🚀 Smithery Deployment
+## 🚀 Özellikler
 
-Bu proje Smithery'de başarıyla deploy edilmiştir. FastMCP STDIO transport kullanılarak optimize edilmiştir.
+Bu MCP servisi JAMA makalelerinden veri çıkarma ve abstract görsellerini alma işlemlerini gerçekleştirir.
 
 ### ✅ Test Sonuçları
 
 - **Scraping**: ✅ Başarılı
 - **Parsing**: ✅ Başarılı  
-- **Visual Generation**: ✅ Başarılı
 - **MCP Server**: ✅ Başarılı
 
 ### 📋 Available Tools
 
-1. **extract_jama_article** - JAMA makale verilerini çıkarır
-2. **generate_visual_data** - Görsel tasarım verileri oluşturur
-3. **full_pipeline** - Tam işlem pipeline'ı
+1. **extract_jama_article** - JAMA makale linkinden makale verilerini çıkarır
+2. **get_article_visual** - Varsa makalenin abstract görselini alır
 
 ### 🔧 Configuration
 
@@ -35,19 +33,36 @@ server:
 
 - **Scraping**: ~15-30 saniye
 - **Parsing**: ~1-2 saniye
-- **Visual Generation**: ~2-3 saniye
-- **Total Pipeline**: ~20-35 saniye
-
-## 📖 Detaylı Bilgi
-
-Detaylı deployment bilgileri için `DEPLOYMENT.md` dosyasına bakın.
+- **Total Process**: ~20-35 saniye
 
 ## 🎯 Kullanım
 
-Smithery'de deploy edildikten sonra, JAMA makale URL'leri ile kullanılabilir:
+JAMA makale URL'leri ile kullanılabilir:
 
 ```
 https://jamanetwork.com/journals/jama/article-abstract/[article-id]
 ```
 
-Proje tamamen çalışır durumda ve Smithery'de başarıyla deploy edilmiştir! 🎉
+### Tool Kullanımı
+
+#### 1. extract_jama_article
+Makale linkinden tüm makale verilerini çıkarır:
+- Başlık
+- Yazarlar
+- Abstract
+- Anahtar kelimeler
+- Yayın tarihi
+- Dergi bilgileri
+- DOI
+
+#### 2. get_article_visual
+Makale linkinden abstract görselini alır (varsa):
+- Görsel URL'si
+- Makale başlığı
+- Görsel varlık durumu
+
+## 📖 Detaylı Bilgi
+
+Detaylı deployment bilgileri için `DEPLOYMENT.md` dosyasına bakın.
+
+Proje tamamen çalışır durumda! 🎉

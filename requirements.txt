@@ -1,21 +1,12 @@
 # JAMA Abstract MCP Requirements
 
-# FastMCP Protocol (MCP yerine)
+# FastMCP Protocol
 fastmcp>=0.9.0
 
 # Web scraping
 selenium>=4.15.0
 beautifulsoup4>=4.12.0
 requests>=2.31.0
-
-# Image processing and analysis
-Pillow>=10.1.0
-opencv-python>=4.8.0
-numpy>=1.24.0
-scikit-learn>=1.3.0
-
-# Data processing
-pandas>=2.1.0
 
 # Async support
 aiohttp>=3.9.0
