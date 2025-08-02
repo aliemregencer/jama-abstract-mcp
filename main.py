@@ -9,7 +9,7 @@ import json
 import logging
 import os
 import tempfile
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, AsyncGenerator
 from io import BytesIO
 import base64
 
@@ -56,8 +56,8 @@ async def extract_jama_article(url: str) -> Dict[str, Any]:
         if "jamanetwork.com" not in url:
             return {"error": "Geçersiz JAMA URL'si. URL jamanetwork.com içermelidir."}
         
-        # Scraper ile veri çıkarma
-        scraper = JAMAScraper(headless=True, timeout=10)
+        # Scraper ile veri çıkarma - daha hızlı timeout
+        scraper = JAMAScraper(headless=True, timeout=6)
         html_content = await scraper.scrape_article(url)
         
         if not html_content:

@@ -153,22 +153,88 @@ class DataParser:
         """Abstract çıkar"""
         abstract_data = {}
         
-        # Ana abstract
-        abstract_elem = self.soup.select_one('.article-abstract, .abstract-content, #abstract')
-        if abstract_elem:
-            abstract_data['full'] = abstract_elem.get_text(strip=True)
+        # Ana abstract - daha fazla selector dene
+        abstract_selectors = [
+            '.article-abstract',
+            '.abstract-content', 
+            '#abstract',
+            '.abstract',
+            '.article-abstract-content',
+            '.abstract-text',
+            '.abstract-body',
+            '.article-abstract-body',
+            '.abstract-section',
+            '.article-abstract-section',
+            '.abstract-main',
+            '.article-abstract-main',
+            '.abstract-full',
+            '.article-abstract-full',
+            '.abstract-content-text',
+            '.article-abstract-content-text',
+            '.abstract-paragraph',
+            '.article-abstract-paragraph',
+            '.abstract-summary',
+            '.article-abstract-summary',
+            '.abstract-description',
+            '.article-abstract-description',
+            '.abstract-details',
+            '.article-abstract-details',
+            '.abstract-info',
+            '.article-abstract-info',
+            '.abstract-main-content',
+            '.article-abstract-main-content',
+            '.abstract-main-text',
+            '.article-abstract-main-text',
+            '.abstract-main-body',
+            '.article-abstract-main-body',
+            '.abstract-main-section',
+            '.article-abstract-main-section',
+            '.abstract-main-paragraph',
+            '.article-abstract-main-paragraph',
+            '.abstract-main-summary',
+            '.article-abstract-main-summary',
+            '.abstract-main-description',
+            '.article-abstract-main-description',
+            '.abstract-main-details',
+            '.article-abstract-main-details',
+            '.abstract-main-info',
+            '.article-abstract-main-info'
+        ]
+        
+        for selector in abstract_selectors:
+            abstract_elem = self.soup.select_one(selector)
+            if abstract_elem:
+                abstract_data['full'] = abstract_elem.get_text(strip=True)
+                break
+        
+        # Eğer hala bulunamadıysa, daha genel arama yap
+        if 'full' not in abstract_data:
+            # Tüm metin içinde "abstract" kelimesini ara
+            text_content = self.soup.get_text()
+            abstract_patterns = [
+                r'Abstract[:\s]*([^.]*?\.)',
+                r'ABSTRACT[:\s]*([^.]*?\.)',
+                r'Summary[:\s]*([^.]*?\.)',
+                r'SUMMARY[:\s]*([^.]*?\.)'
+            ]
+            
+            for pattern in abstract_patterns:
+                match = re.search(pattern, text_content, re.IGNORECASE | re.DOTALL)
+                if match:
+                    abstract_data['full'] = match.group(1).strip()
+                    break
         
         # Structured abstract bölümleri
         sections = {
-            'importance': ['.abstract-importance', '.importance'],
-            'objective': ['.abstract-objective', '.objective'],
-            'design': ['.abstract-design', '.design'],
-            'setting': ['.abstract-setting', '.setting'],
-            'participants': ['.abstract-participants', '.participants'],
-            'intervention': ['.abstract-intervention', '.intervention'],
-            'main_outcomes': ['.abstract-outcomes', '.outcomes'],
-            'results': ['.abstract-results', '.results'],
-            'conclusions': ['.abstract-conclusions', '.conclusions']
+            'importance': ['.abstract-importance', '.importance', '.abstract-importance-text'],
+            'objective': ['.abstract-objective', '.objective', '.abstract-objective-text'],
+            'design': ['.abstract-design', '.design', '.abstract-design-text'],
+            'setting': ['.abstract-setting', '.setting', '.abstract-setting-text'],
+            'participants': ['.abstract-participants', '.participants', '.abstract-participants-text'],
+            'intervention': ['.abstract-intervention', '.intervention', '.abstract-intervention-text'],
+            'main_outcomes': ['.abstract-outcomes', '.outcomes', '.abstract-outcomes-text'],
+            'results': ['.abstract-results', '.results', '.abstract-results-text'],
+            'conclusions': ['.abstract-conclusions', '.conclusions', '.abstract-conclusions-text']
         }
         
         for section_name, selectors in sections.items():
@@ -198,13 +264,36 @@ class DataParser:
                 r'(?:enrolled|included|recruited)\s+(\d+)\s+(?:patients|participants|subjects)',
                 r'(?:total of|total)\s+(\d+)\s+(?:patients|participants|subjects)',
                 r'(\d+)\s+(?:men|women|males|females)',
-                r'aged\s+(\d+)\s+to\s+(\d+)\s+years'
+                r'aged\s+(\d+)\s+to\s+(\d+)\s+years',
+                r'(\d+)\s+(?:adults|older adults|elderly)',
+                r'(?:randomized|assigned)\s+(\d+)\s+(?:participants|subjects)',
+                r'(\d+)\s+(?:community-dwelling|community)',
+                r'(?:sample size|sample)\s+of\s+(\d+)',
+                r'(\d+)\s+(?:volunteers|individuals)'
             ]
             
             for pattern in population_patterns:
                 match = re.search(pattern, full_text, re.IGNORECASE)
                 if match:
                     return f"Population: {match.group(0)}"
+        
+        # Alternatif: HTML'den doğrudan ara
+        population_selectors = [
+            '.abstract-participants',
+            '.participants',
+            '.study-population',
+            '.population',
+            '[data-testid="participants"]',
+            '.abstract .participants',
+            '.article-abstract .participants'
+        ]
+        
+        for selector in population_selectors:
+            elem = self.soup.select_one(selector)
+            if elem:
+                text = elem.get_text(strip=True)
+                if text and len(text) > 10:
+                    return f"Population: {text}"
         
         return "Population bilgisi bulunamadı"
     
@@ -223,13 +312,35 @@ class DataParser:
             intervention_patterns = [
                 r'(?:treated with|received|administered)\s+([^.]*?)(?:\.|;)',
                 r'(?:intervention|treatment)\s+([^.]*?)(?:\.|;)',
-                r'(?:randomized to|assigned to)\s+([^.]*?)(?:\.|;)'
+                r'(?:randomized to|assigned to)\s+([^.]*?)(?:\.|;)',
+                r'(?:intervention group|treatment group)\s+([^.]*?)(?:\.|;)',
+                r'(?:lifestyle intervention|behavioral intervention)\s+([^.]*?)(?:\.|;)',
+                r'(?:multidomain intervention|multicomponent intervention)\s+([^.]*?)(?:\.|;)',
+                r'(?:self-guided|guided)\s+([^.]*?)(?:\.|;)',
+                r'(?:structured|standardized)\s+([^.]*?)(?:\.|;)'
             ]
             
             for pattern in intervention_patterns:
                 match = re.search(pattern, full_text, re.IGNORECASE)
                 if match:
                     return f"Intervention: {match.group(1).strip()}"
+        
+        # Alternatif: HTML'den doğrudan ara
+        intervention_selectors = [
+            '.abstract-intervention',
+            '.intervention',
+            '.treatment',
+            '[data-testid="intervention"]',
+            '.abstract .intervention',
+            '.article-abstract .intervention'
+        ]
+        
+        for selector in intervention_selectors:
+            elem = self.soup.select_one(selector)
+            if elem:
+                text = elem.get_text(strip=True)
+                if text and len(text) > 10:
+                    return f"Intervention: {text}"
         
         return "Intervention bilgisi bulunamadı"
     
@@ -248,13 +359,34 @@ class DataParser:
             findings_patterns = [
                 r'(?:results|findings|outcomes)\s*:?\s*([^.]*?)(?:\.|;)',
                 r'(?:showed|demonstrated|found)\s+([^.]*?)(?:\.|;)',
-                r'(?:significant|significant difference)\s+([^.]*?)(?:\.|;)'
+                r'(?:significant|significant difference)\s+([^.]*?)(?:\.|;)',
+                r'(?:improved|increased|decreased)\s+([^.]*?)(?:\.|;)',
+                r'(?:no difference|no significant difference)\s+([^.]*?)(?:\.|;)',
+                r'(?:cognitive function|memory|attention)\s+([^.]*?)(?:\.|;)',
+                r'(?:primary outcome|secondary outcome)\s+([^.]*?)(?:\.|;)'
             ]
             
             for pattern in findings_patterns:
                 match = re.search(pattern, full_text, re.IGNORECASE)
                 if match:
                     return f"Findings: {match.group(1).strip()}"
+        
+        # Alternatif: HTML'den doğrudan ara
+        findings_selectors = [
+            '.abstract-results',
+            '.results',
+            '.findings',
+            '[data-testid="results"]',
+            '.abstract .results',
+            '.article-abstract .results'
+        ]
+        
+        for selector in findings_selectors:
+            elem = self.soup.select_one(selector)
+            if elem:
+                text = elem.get_text(strip=True)
+                if text and len(text) > 10:
+                    return f"Findings: {text}"
         
         return "Findings bilgisi bulunamadı"
     
@@ -273,13 +405,34 @@ class DataParser:
             settings_patterns = [
                 r'(?:conducted at|performed at|study at)\s+([^.]*?)(?:\.|;)',
                 r'(?:hospital|clinic|center|facility)\s+([^.]*?)(?:\.|;)',
-                r'(?:multicenter|single-center)\s+([^.]*?)(?:\.|;)'
+                r'(?:multicenter|single-center)\s+([^.]*?)(?:\.|;)',
+                r'(?:community|academic|research)\s+([^.]*?)(?:\.|;)',
+                r'(?:US|United States|international)\s+([^.]*?)(?:\.|;)',
+                r'(?:randomized clinical trial|RCT)\s+([^.]*?)(?:\.|;)',
+                r'(?:prospective|retrospective)\s+([^.]*?)(?:\.|;)'
             ]
             
             for pattern in settings_patterns:
                 match = re.search(pattern, full_text, re.IGNORECASE)
                 if match:
                     return f"Settings: {match.group(1).strip()}"
+        
+        # Alternatif: HTML'den doğrudan ara
+        settings_selectors = [
+            '.abstract-setting',
+            '.setting',
+            '.study-setting',
+            '[data-testid="setting"]',
+            '.abstract .setting',
+            '.article-abstract .setting'
+        ]
+        
+        for selector in settings_selectors:
+            elem = self.soup.select_one(selector)
+            if elem:
+                text = elem.get_text(strip=True)
+                if text and len(text) > 10:
+                    return f"Settings: {text}"
         
         return "Settings bilgisi bulunamadı"
     
@@ -298,13 +451,34 @@ class DataParser:
             outcome_patterns = [
                 r'(?:primary outcome|primary endpoint|primary end point)\s*:?\s*([^.]*?)(?:\.|;)',
                 r'(?:measured|assessed|evaluated)\s+([^.]*?)(?:\.|;)',
-                r'(?:outcome|endpoint)\s+([^.]*?)(?:\.|;)'
+                r'(?:outcome|endpoint)\s+([^.]*?)(?:\.|;)',
+                r'(?:cognitive function|memory|attention)\s+([^.]*?)(?:\.|;)',
+                r'(?:global cognitive|overall cognitive)\s+([^.]*?)(?:\.|;)',
+                r'(?:primary measure|primary assessment)\s+([^.]*?)(?:\.|;)',
+                r'(?:change in|improvement in)\s+([^.]*?)(?:\.|;)'
             ]
             
             for pattern in outcome_patterns:
                 match = re.search(pattern, full_text, re.IGNORECASE)
                 if match:
                     return f"Primary Outcome: {match.group(1).strip()}"
+        
+        # Alternatif: HTML'den doğrudan ara
+        outcome_selectors = [
+            '.abstract-outcomes',
+            '.outcomes',
+            '.primary-outcome',
+            '[data-testid="outcomes"]',
+            '.abstract .outcomes',
+            '.article-abstract .outcomes'
+        ]
+        
+        for selector in outcome_selectors:
+            elem = self.soup.select_one(selector)
+            if elem:
+                text = elem.get_text(strip=True)
+                if text and len(text) > 10:
+                    return f"Primary Outcome: {text}"
         
         return "Primary outcome bilgisi bulunamadı"
     

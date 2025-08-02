@@ -16,7 +16,7 @@ from selenium.common.exceptions import TimeoutException, WebDriverException
 from webdriver_manager.chrome import ChromeDriverManager
 
 class JAMAScraper:
-    def __init__(self, headless: bool = True, timeout: int = 15):
+    def __init__(self, headless: bool = True, timeout: int = 8):
         """
         JAMA Scraper initialize
         
@@ -35,7 +35,7 @@ class JAMAScraper:
         if self.headless:
             chrome_options.add_argument("--headless")
         
-        # Smithery için performans optimizasyonları
+        # Smithery için performans optimizasyonları - daha agresif
         chrome_options.add_argument("--no-sandbox")
         chrome_options.add_argument("--disable-dev-shm-usage")
         chrome_options.add_argument("--disable-gpu")
@@ -45,13 +45,45 @@ class JAMAScraper:
         chrome_options.add_argument("--disable-web-security")
         chrome_options.add_argument("--disable-features=VizDisplayCompositor")
         chrome_options.add_argument("--memory-pressure-off")
-        chrome_options.add_argument("--max_old_space_size=4096")
+        chrome_options.add_argument("--max_old_space_size=2048")
         chrome_options.add_argument("--disable-background-timer-throttling")
         chrome_options.add_argument("--disable-backgrounding-occluded-windows")
         chrome_options.add_argument("--disable-renderer-backgrounding")
         chrome_options.add_argument("--disable-field-trial-config")
         chrome_options.add_argument("--disable-ipc-flooding-protection")
         chrome_options.add_argument("--disable-blink-features=AutomationControlled")
+        chrome_options.add_argument("--disable-javascript")  # JavaScript'i devre dışı bırak
+        chrome_options.add_argument("--disable-css")  # CSS'i devre dışı bırak
+        chrome_options.add_argument("--disable-animations")  # Animasyonları devre dışı bırak
+        chrome_options.add_argument("--disable-transitions")  # Geçişleri devre dışı bırak
+        chrome_options.add_argument("--disable-webgl")  # WebGL'i devre dışı bırak
+        chrome_options.add_argument("--disable-canvas-aa")  # Canvas anti-aliasing'i devre dışı bırak
+        chrome_options.add_argument("--disable-2d-canvas-clip-aa")  # 2D canvas clip anti-aliasing'i devre dışı bırak
+        chrome_options.add_argument("--disable-gl-drawing-for-tests")  # GL drawing'i devre dışı bırak
+        chrome_options.add_argument("--disable-dev-shm-usage")  # Shared memory kullanımını devre dışı bırak
+        chrome_options.add_argument("--disable-setuid-sandbox")  # Setuid sandbox'ı devre dışı bırak
+        chrome_options.add_argument("--disable-seccomp-filter-sandbox")  # Seccomp filter sandbox'ı devre dışı bırak
+        chrome_options.add_argument("--disable-breakpad")  # Breakpad'i devre dışı bırak
+        chrome_options.add_argument("--disable-component-extensions-with-background-pages")  # Background page'li component extension'ları devre dışı bırak
+        chrome_options.add_argument("--disable-default-apps")  # Default app'leri devre dışı bırak
+        chrome_options.add_argument("--disable-sync")  # Sync'i devre dışı bırak
+        chrome_options.add_argument("--disable-translate")  # Translate'i devre dışı bırak
+        chrome_options.add_argument("--hide-scrollbars")  # Scrollbar'ları gizle
+        chrome_options.add_argument("--mute-audio")  # Audio'yu sessize al
+        chrome_options.add_argument("--no-first-run")  # İlk çalıştırma ekranını atla
+        chrome_options.add_argument("--disable-background-networking")  # Background networking'i devre dışı bırak
+        chrome_options.add_argument("--disable-background-timer-throttling")  # Background timer throttling'i devre dışı bırak
+        chrome_options.add_argument("--disable-client-side-phishing-detection")  # Client-side phishing detection'i devre dışı bırak
+        chrome_options.add_argument("--disable-default-apps")  # Default app'leri devre dışı bırak
+        chrome_options.add_argument("--disable-extensions")  # Extension'ları devre dışı bırak
+        chrome_options.add_argument("--disable-hang-monitor")  # Hang monitor'ü devre dışı bırak
+        chrome_options.add_argument("--disable-prompt-on-repost")  # Repost prompt'unu devre dışı bırak
+        chrome_options.add_argument("--disable-sync")  # Sync'i devre dışı bırak
+        chrome_options.add_argument("--disable-web-resources")  # Web resource'larını devre dışı bırak
+        chrome_options.add_argument("--metrics-recording-only")  # Sadece metrics kaydet
+        chrome_options.add_argument("--no-first-run")  # İlk çalıştırma ekranını atla
+        chrome_options.add_argument("--safebrowsing-disable-auto-update")  # Safe browsing auto update'i devre dışı bırak
+        chrome_options.add_argument("--enable-automation")  # Automation'ı etkinleştir
         chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
         chrome_options.add_experimental_option('useAutomationExtension', False)
         chrome_options.add_argument("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
@@ -85,7 +117,7 @@ class JAMAScraper:
             # Sayfayı yükle
             self.driver.get(url)
             
-            # Sayfa yüklenmesini bekle
+            # Sayfa yüklenmesini bekle - daha kısa timeout
             wait = WebDriverWait(self.driver, self.timeout)
             
             # Ana içerik alanlarından birinin yüklenmesini bekle
@@ -100,17 +132,17 @@ class JAMAScraper:
             except TimeoutException:
                 print("Ana içerik alanları bulunamadı, devam ediliyor...")
             
-            # Cookie/popup'ları kapat
+            # Cookie/popup'ları kapat - daha hızlı
             await self._handle_popups()
             
-            # Sayfanın tam yüklenmesi için biraz bekle
-            await asyncio.sleep(3)
+            # Sayfanın tam yüklenmesi için çok kısa bekle
+            await asyncio.sleep(1)
             
-            # JavaScript'in çalışması için scroll yap
+            # JavaScript'in çalışması için scroll yap - daha hızlı
             self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-            await asyncio.sleep(1)
+            await asyncio.sleep(0.5)
             self.driver.execute_script("window.scrollTo(0, 0);")
-            await asyncio.sleep(1)
+            await asyncio.sleep(0.5)
             
             # HTML içeriğini al
             html_content = self.driver.page_source
@@ -134,9 +166,9 @@ class JAMAScraper:
                     pass
     
     async def _handle_popups(self):
-        """Cookie consent ve diğer popup'ları kapat"""
+        """Cookie consent ve diğer popup'ları kapat - daha hızlı"""
         try:
-            # Cookie consent butonları
+            # Cookie consent butonları - daha kısa timeout
             cookie_buttons = [
                 "//button[contains(text(), 'Accept')]",
                 "//button[contains(text(), 'I Accept')]",
@@ -151,16 +183,16 @@ class JAMAScraper:
             
             for button_xpath in cookie_buttons:
                 try:
-                    button = WebDriverWait(self.driver, 3).until(
+                    button = WebDriverWait(self.driver, 1).until(  # 1 saniye timeout
                         EC.element_to_be_clickable((By.XPATH, button_xpath))
                     )
                     button.click()
-                    await asyncio.sleep(0.5)
+                    await asyncio.sleep(0.2)  # Daha kısa bekle
                     break
                 except TimeoutException:
                     continue
             
-            # Popup kapatma butonları
+            # Popup kapatma butonları - daha kısa timeout
             try:
                 close_selectors = [
                     "[data-dismiss='modal']",
@@ -175,11 +207,11 @@ class JAMAScraper:
                 
                 for selector in close_selectors:
                     try:
-                        close_button = WebDriverWait(self.driver, 2).until(
+                        close_button = WebDriverWait(self.driver, 1).until(  # 1 saniye timeout
                             EC.element_to_be_clickable((By.CSS_SELECTOR, selector))
                         )
                         close_button.click()
-                        await asyncio.sleep(0.5)
+                        await asyncio.sleep(0.2)  # Daha kısa bekle
                         break
                     except TimeoutException:
                         continue
@@ -205,7 +237,7 @@ class JAMAScraper:
             self.driver = self._setup_driver()
             self.driver.get(url)
             
-            await asyncio.sleep(3)
+            await asyncio.sleep(2)  # Daha kısa bekle
             self.driver.save_screenshot(save_path)
             
             return True
