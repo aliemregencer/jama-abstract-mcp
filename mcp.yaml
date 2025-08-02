@@ -4,13 +4,77 @@ description: "JAMA tıp dergisi makalelerinden veri çıkarma MCP servisi"
 
 server:
   command: python
-  args: ["main.py"]
+  args: ["main.py", "--transport", "http", "--host", "0.0.0.0", "--port", "8000"]
   env:
     PYTHONPATH: "."
     PYTHONUNBUFFERED: "1"
+    MCP_TRANSPORT: "http"
+    MCP_HOST: "0.0.0.0"
+    MCP_PORT: "8000"
 
-# FastMCP otomatik olarak @mcp.tool() decorator'larını detect eder
-# Tools kısmına manuel olarak eklemeye gerek yok
+# Tools tanımları
+tools:
+  - name: extract_jama_article
+    description: "JAMA makale linkinden makale verilerini çıkarır"
+    inputSchema:
+      type: object
+      properties:
+        url:
+          type: string
+          description: "JAMA makale URL'si (örn: https://jamanetwork.com/journals/jama/article-abstract/...)"
+      required:
+        - url
+    outputSchema:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            title:
+              type: string
+            authors:
+              type: array
+            abstract:
+              type: object
+            population:
+              type: string
+            intervention:
+              type: string
+            findings:
+              type: string
+            settings:
+              type: string
+            primary_outcome:
+              type: string
+        error:
+          type: string
+
+  - name: create_abstract_visual
+    description: "Makale verilerine göre abstract görsel oluşturur ve PPTX formatında döndürür"
+    inputSchema:
+      type: object
+      properties:
+        article_data:
+          type: object
+          description: "extract_jama_article tool'undan gelen makale verileri"
+      required:
+        - article_data
+    outputSchema:
+      type: object
+      properties:
+        success:
+          type: boolean
+        pptx_base64:
+          type: string
+          description: "Base64 encoded PPTX dosyası"
+        filename:
+          type: string
+        message:
+          type: string
+        error:
+          type: string
 
 install:
   pip:

@@ -11,6 +11,7 @@ import os
 import tempfile
 from typing import Any, Dict, List, Optional
 from io import BytesIO
+import base64
 
 # FastMCP import
 import fastmcp
@@ -43,27 +44,24 @@ async def extract_jama_article(url: str) -> Dict[str, Any]:
     JAMA makale linkinden makale verilerini çıkarır
     
     Args:
-        url: JAMA makale URL'si
+        url: JAMA makale URL'si (örn: https://jamanetwork.com/journals/jama/article-abstract/...)
         
     Returns:
         Çıkarılan makale verileri (başlık, yazarlar, özet, vb.)
     """
-    return await _extract_jama_article(url)
-
-async def _extract_jama_article(url: str) -> Dict[str, Any]:
     try:
         logger.info(f"JAMA makale çıkarma başlıyor: {url}")
         
         # URL doğrulama
         if "jamanetwork.com" not in url:
-            return {"error": "Geçersiz JAMA URL'si"}
+            return {"error": "Geçersiz JAMA URL'si. URL jamanetwork.com içermelidir."}
         
         # Scraper ile veri çıkarma
-        scraper = JAMAScraper(headless=True, timeout=8)
+        scraper = JAMAScraper(headless=True, timeout=10)
         html_content = await scraper.scrape_article(url)
         
         if not html_content:
-            return {"error": "Makale içeriği alınamadı"}
+            return {"error": "Makale içeriği alınamadı. URL'yi kontrol edin."}
         
         # Parser ile veri ayrıştırma
         parser = DataParser()
@@ -91,14 +89,11 @@ async def create_abstract_visual(article_data: Dict[str, Any]) -> Dict[str, Any]
     Returns:
         PPTX dosyası (base64 encoded) ve metadata
     """
-    return await _create_abstract_visual(article_data)
-
-async def _create_abstract_visual(article_data: Dict[str, Any]) -> Dict[str, Any]:
     try:
         logger.info("Abstract görsel oluşturma başlıyor")
         
         if not article_data or "data" not in article_data:
-            return {"error": "Geçersiz makale verisi"}
+            return {"error": "Geçersiz makale verisi. Önce extract_jama_article tool'unu kullanın."}
         
         data = article_data["data"]
         
@@ -206,7 +201,6 @@ async def _generate_abstract_pptx(article_data: Dict[str, Any]) -> str:
         pptx_bytes = pptx_stream.getvalue()
         
         # Base64 encode
-        import base64
         return base64.b64encode(pptx_bytes).decode('utf-8')
         
     except Exception as e:
@@ -220,7 +214,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="JAMA Abstract MCP Server")
     parser.add_argument("--transport", choices=["stdio", "http"], default="stdio",
                        help="Transport protocol to use")
-    parser.add_argument("--host", default="127.0.0.1",
+    parser.add_argument("--host", default="0.0.0.0",
                        help="Host to bind to (for HTTP transport)")
     parser.add_argument("--port", type=int, default=8000,
                        help="Port to bind to (for HTTP transport)")

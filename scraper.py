@@ -16,13 +16,13 @@ from selenium.common.exceptions import TimeoutException, WebDriverException
 from webdriver_manager.chrome import ChromeDriverManager
 
 class JAMAScraper:
-    def __init__(self, headless: bool = True, timeout: int = 8):
+    def __init__(self, headless: bool = True, timeout: int = 15):
         """
         JAMA Scraper initialize
         
         Args:
             headless: Tarayıcıyı gizli modda çalıştır
-            timeout: Sayfa yükleme timeout süresi (Smithery için kısaltıldı)
+            timeout: Sayfa yükleme timeout süresi (Smithery için optimize edildi)
         """
         self.headless = headless
         self.timeout = timeout
@@ -35,32 +35,39 @@ class JAMAScraper:
         if self.headless:
             chrome_options.add_argument("--headless")
         
-        # Performans optimizasyonları (JavaScript aktif)
+        # Smithery için performans optimizasyonları
         chrome_options.add_argument("--no-sandbox")
         chrome_options.add_argument("--disable-dev-shm-usage")
         chrome_options.add_argument("--disable-gpu")
         chrome_options.add_argument("--disable-extensions")
-        chrome_options.add_argument("--disable-images")  # Resimleri devre dışı bırak
+        chrome_options.add_argument("--disable-images")
         chrome_options.add_argument("--disable-plugins")
         chrome_options.add_argument("--disable-web-security")
         chrome_options.add_argument("--disable-features=VizDisplayCompositor")
         chrome_options.add_argument("--memory-pressure-off")
-        chrome_options.add_argument("--max_old_space_size=2048")
+        chrome_options.add_argument("--max_old_space_size=4096")
         chrome_options.add_argument("--disable-background-timer-throttling")
         chrome_options.add_argument("--disable-backgrounding-occluded-windows")
         chrome_options.add_argument("--disable-renderer-backgrounding")
         chrome_options.add_argument("--disable-field-trial-config")
         chrome_options.add_argument("--disable-ipc-flooding-protection")
+        chrome_options.add_argument("--disable-blink-features=AutomationControlled")
+        chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
+        chrome_options.add_experimental_option('useAutomationExtension', False)
         chrome_options.add_argument("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
         
         # WebDriver otomatik kurulum
         try:
             service = Service(ChromeDriverManager().install())
-            return webdriver.Chrome(service=service, options=chrome_options)
+            driver = webdriver.Chrome(service=service, options=chrome_options)
+            driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
+            return driver
         except Exception as e:
             print(f"ChromeDriver kurulum hatası: {e}")
             # Fallback: sistem PATH'den dene
-            return webdriver.Chrome(options=chrome_options)
+            driver = webdriver.Chrome(options=chrome_options)
+            driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
+            return driver
     
     async def scrape_article(self, url: str) -> Optional[str]:
         """
@@ -97,7 +104,7 @@ class JAMAScraper:
             await self._handle_popups()
             
             # Sayfanın tam yüklenmesi için biraz bekle
-            await asyncio.sleep(2)
+            await asyncio.sleep(3)
             
             # JavaScript'in çalışması için scroll yap
             self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
@@ -121,7 +128,10 @@ class JAMAScraper:
             return None
         finally:
             if self.driver:
-                self.driver.quit()
+                try:
+                    self.driver.quit()
+                except:
+                    pass
     
     async def _handle_popups(self):
         """Cookie consent ve diğer popup'ları kapat"""
@@ -134,12 +144,14 @@ class JAMAScraper:
                 "//button[contains(@class, 'cookie-accept')]",
                 "//button[contains(@class, 'consent-accept')]",
                 "//button[contains(text(), 'Accept All')]",
-                "//button[contains(text(), 'Accept Cookies')]"
+                "//button[contains(text(), 'Accept Cookies')]",
+                "//button[contains(text(), 'OK')]",
+                "//button[contains(text(), 'Continue')]"
             ]
             
             for button_xpath in cookie_buttons:
                 try:
-                    button = WebDriverWait(self.driver, 2).until(
+                    button = WebDriverWait(self.driver, 3).until(
                         EC.element_to_be_clickable((By.XPATH, button_xpath))
                     )
                     button.click()
@@ -156,7 +168,9 @@ class JAMAScraper:
                     ".close",
                     ".popup-close",
                     "[aria-label='Close']",
-                    ".btn-close"
+                    ".btn-close",
+                    ".modal .close",
+                    ".overlay .close"
                 ]
                 
                 for selector in close_selectors:
@@ -201,7 +215,10 @@ class JAMAScraper:
             return False
         finally:
             if self.driver:
-                self.driver.quit()
+                try:
+                    self.driver.quit()
+                except:
+                    pass
     
     def __del__(self):
         """Cleanup"""
