@@ -1,21 +1,22 @@
 # JAMA Abstract MCP
 
-JAMA tıp dergisi makalelerinden veri çıkarma MCP servisi.
+JAMA tıp dergisi makalelerinden veri çıkarma ve abstract görsel oluşturma MCP servisi.
 
 ## 🚀 Özellikler
 
-Bu MCP servisi JAMA makalelerinden veri çıkarma ve abstract görsellerini alma işlemlerini gerçekleştirir.
+Bu MCP servisi JAMA makalelerinden veri çıkarma ve abstract görsellerini oluşturma işlemlerini gerçekleştirir.
 
 ### ✅ Test Sonuçları
 
 - **Scraping**: ✅ Başarılı
 - **Parsing**: ✅ Başarılı  
 - **MCP Server**: ✅ Başarılı
+- **Abstract Visual Creation**: ✅ Başarılı
 
 ### 📋 Available Tools
 
 1. **extract_jama_article** - JAMA makale linkinden makale verilerini çıkarır
-2. **get_article_visual** - Varsa makalenin abstract görselini alır
+2. **create_abstract_visual** - Makale verilerine göre abstract görsel oluşturur ve PPTX formatında döndürür
 
 ### 🔧 Configuration
 
@@ -33,7 +34,8 @@ server:
 
 - **Scraping**: ~15-30 saniye
 - **Parsing**: ~1-2 saniye
-- **Total Process**: ~20-35 saniye
+- **Visual Creation**: ~3-5 saniye
+- **Total Process**: ~20-40 saniye
 
 ## 🎯 Kullanım
 
@@ -54,12 +56,29 @@ Makale linkinden tüm makale verilerini çıkarır:
 - Yayın tarihi
 - Dergi bilgileri
 - DOI
+- Population, Intervention, Findings, Settings, Primary Outcome (abstract görsel için)
 
-#### 2. get_article_visual
-Makale linkinden abstract görselini alır (varsa):
-- Görsel URL'si
-- Makale başlığı
-- Görsel varlık durumu
+#### 2. create_abstract_visual
+Makale verilerine göre abstract görsel oluşturur:
+- **Input**: `extract_jama_article` tool'undan gelen makale verileri
+- **Output**: PPTX formatında abstract görsel (base64 encoded)
+- **Özellikler**:
+  - JAMA stilinde abstract görsel tasarımı
+  - Population, Intervention, Findings, Settings, Primary Outcome bölümleri
+  - PowerPoint formatında indirilmeye hazır
+  - Otomatik dosya adlandırma
+
+### 📋 Gerekli Kütüphaneler
+
+```bash
+pip install -r requirements.txt
+```
+
+Yeni eklenen kütüphaneler:
+- `python-pptx>=0.6.21` - PPTX oluşturma
+- `Pillow>=10.0.0` - Görsel işleme
+- `matplotlib>=3.7.0` - Grafik oluşturma
+- `seaborn>=0.12.0` - İstatistiksel görselleştirme
 
 ## 📖 Detaylı Bilgi
 

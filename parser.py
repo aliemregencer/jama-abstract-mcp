@@ -36,7 +36,13 @@ class DataParser:
             "article_type": self._extract_article_type(),
             "existing_visual_url": self._extract_existing_visual(),
             "full_text_preview": self._extract_text_preview(),
-            "metadata": self._extract_metadata()
+            "metadata": self._extract_metadata(),
+            # Abstract görsel için yeni alanlar
+            "population": self._extract_population(),
+            "intervention": self._extract_intervention(),
+            "findings": self._extract_findings(),
+            "settings": self._extract_settings(),
+            "primary_outcome": self._extract_primary_outcome()
         }
         
         return article_data
@@ -135,6 +141,134 @@ class DataParser:
                     break
         
         return abstract_data
+    
+    def _extract_population(self) -> str:
+        """Population bilgisini çıkar"""
+        # Abstract'ten population bilgisini çıkar
+        abstract = self._extract_abstract()
+        
+        # Önce participants bölümünden dene
+        if 'participants' in abstract:
+            return abstract['participants']
+        
+        # Full abstract'ten population bilgisini çıkar
+        if 'full' in abstract:
+            full_text = abstract['full']
+            # Population pattern'leri ara
+            population_patterns = [
+                r'(\d+)\s+(?:patients|participants|subjects|individuals)',
+                r'(?:enrolled|included|recruited)\s+(\d+)\s+(?:patients|participants|subjects)',
+                r'(?:total of|total)\s+(\d+)\s+(?:patients|participants|subjects)',
+                r'(\d+)\s+(?:men|women|males|females)',
+                r'aged\s+(\d+)\s+to\s+(\d+)\s+years'
+            ]
+            
+            for pattern in population_patterns:
+                match = re.search(pattern, full_text, re.IGNORECASE)
+                if match:
+                    return f"Population: {match.group(0)}"
+        
+        return "Population bilgisi bulunamadı"
+    
+    def _extract_intervention(self) -> str:
+        """Intervention bilgisini çıkar"""
+        abstract = self._extract_abstract()
+        
+        # Önce intervention bölümünden dene
+        if 'intervention' in abstract:
+            return abstract['intervention']
+        
+        # Full abstract'ten intervention bilgisini çıkar
+        if 'full' in abstract:
+            full_text = abstract['full']
+            # Intervention pattern'leri ara
+            intervention_patterns = [
+                r'(?:treated with|received|administered)\s+([^.]*?)(?:\.|;)',
+                r'(?:intervention|treatment)\s+([^.]*?)(?:\.|;)',
+                r'(?:randomized to|assigned to)\s+([^.]*?)(?:\.|;)'
+            ]
+            
+            for pattern in intervention_patterns:
+                match = re.search(pattern, full_text, re.IGNORECASE)
+                if match:
+                    return f"Intervention: {match.group(1).strip()}"
+        
+        return "Intervention bilgisi bulunamadı"
+    
+    def _extract_findings(self) -> str:
+        """Findings bilgisini çıkar"""
+        abstract = self._extract_abstract()
+        
+        # Önce results bölümünden dene
+        if 'results' in abstract:
+            return abstract['results']
+        
+        # Full abstract'ten findings bilgisini çıkar
+        if 'full' in abstract:
+            full_text = abstract['full']
+            # Findings pattern'leri ara
+            findings_patterns = [
+                r'(?:results|findings|outcomes)\s*:?\s*([^.]*?)(?:\.|;)',
+                r'(?:showed|demonstrated|found)\s+([^.]*?)(?:\.|;)',
+                r'(?:significant|significant difference)\s+([^.]*?)(?:\.|;)'
+            ]
+            
+            for pattern in findings_patterns:
+                match = re.search(pattern, full_text, re.IGNORECASE)
+                if match:
+                    return f"Findings: {match.group(1).strip()}"
+        
+        return "Findings bilgisi bulunamadı"
+    
+    def _extract_settings(self) -> str:
+        """Settings bilgisini çıkar"""
+        abstract = self._extract_abstract()
+        
+        # Önce setting bölümünden dene
+        if 'setting' in abstract:
+            return abstract['setting']
+        
+        # Full abstract'ten settings bilgisini çıkar
+        if 'full' in abstract:
+            full_text = abstract['full']
+            # Settings pattern'leri ara
+            settings_patterns = [
+                r'(?:conducted at|performed at|study at)\s+([^.]*?)(?:\.|;)',
+                r'(?:hospital|clinic|center|facility)\s+([^.]*?)(?:\.|;)',
+                r'(?:multicenter|single-center)\s+([^.]*?)(?:\.|;)'
+            ]
+            
+            for pattern in settings_patterns:
+                match = re.search(pattern, full_text, re.IGNORECASE)
+                if match:
+                    return f"Settings: {match.group(1).strip()}"
+        
+        return "Settings bilgisi bulunamadı"
+    
+    def _extract_primary_outcome(self) -> str:
+        """Primary outcome bilgisini çıkar"""
+        abstract = self._extract_abstract()
+        
+        # Önce main_outcomes bölümünden dene
+        if 'main_outcomes' in abstract:
+            return abstract['main_outcomes']
+        
+        # Full abstract'ten primary outcome bilgisini çıkar
+        if 'full' in abstract:
+            full_text = abstract['full']
+            # Primary outcome pattern'leri ara
+            outcome_patterns = [
+                r'(?:primary outcome|primary endpoint|primary end point)\s*:?\s*([^.]*?)(?:\.|;)',
+                r'(?:measured|assessed|evaluated)\s+([^.]*?)(?:\.|;)',
+                r'(?:outcome|endpoint)\s+([^.]*?)(?:\.|;)'
+            ]
+            
+            for pattern in outcome_patterns:
+                match = re.search(pattern, full_text, re.IGNORECASE)
+                if match:
+                    return f"Primary Outcome: {match.group(1).strip()}"
+        
+        return "Primary outcome bilgisi bulunamadı"
     
     def _extract_keywords(self) -> List[str]:
         """Anahtar kelimeleri çıkar"""
