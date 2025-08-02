@@ -35,14 +35,12 @@ class JAMAScraper:
         if self.headless:
             chrome_options.add_argument("--headless")
         
-        # Smithery için ultra agresif performans optimizasyonları
+        # Performans optimizasyonları (JavaScript aktif)
         chrome_options.add_argument("--no-sandbox")
         chrome_options.add_argument("--disable-dev-shm-usage")
         chrome_options.add_argument("--disable-gpu")
         chrome_options.add_argument("--disable-extensions")
-        chrome_options.add_argument("--disable-images")
-        chrome_options.add_argument("--disable-javascript")
-        chrome_options.add_argument("--disable-css")
+        chrome_options.add_argument("--disable-images")  # Resimleri devre dışı bırak
         chrome_options.add_argument("--disable-plugins")
         chrome_options.add_argument("--disable-web-security")
         chrome_options.add_argument("--disable-features=VizDisplayCompositor")
@@ -53,7 +51,7 @@ class JAMAScraper:
         chrome_options.add_argument("--disable-renderer-backgrounding")
         chrome_options.add_argument("--disable-field-trial-config")
         chrome_options.add_argument("--disable-ipc-flooding-protection")
-        chrome_options.add_argument("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
+        chrome_options.add_argument("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
         
         # WebDriver otomatik kurulum
         try:
@@ -80,8 +78,8 @@ class JAMAScraper:
             # Sayfayı yükle
             self.driver.get(url)
             
-            # Smithery için ultra hızlı yükleme
-            wait = WebDriverWait(self.driver, 2)  # Sadece 2 saniye bekle
+            # Sayfa yüklenmesini bekle
+            wait = WebDriverWait(self.driver, self.timeout)
             
             # Ana içerik alanlarından birinin yüklenmesini bekle
             try:
@@ -95,11 +93,17 @@ class JAMAScraper:
             except TimeoutException:
                 print("Ana içerik alanları bulunamadı, devam ediliyor...")
             
-            # Cookie/popup'ları kapat (varsa) - ultra hızlı
-            await self._handle_popups_ultra_fast()
+            # Cookie/popup'ları kapat
+            await self._handle_popups()
             
-            # Minimum bekleme
-            await asyncio.sleep(0.1)
+            # Sayfanın tam yüklenmesi için biraz bekle
+            await asyncio.sleep(2)
+            
+            # JavaScript'in çalışması için scroll yap
+            self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+            await asyncio.sleep(1)
+            self.driver.execute_script("window.scrollTo(0, 0);")
+            await asyncio.sleep(1)
             
             # HTML içeriğini al
             html_content = self.driver.page_source
@@ -119,46 +123,49 @@ class JAMAScraper:
             if self.driver:
                 self.driver.quit()
     
-    async def _handle_popups_ultra_fast(self):
-        """Cookie consent ve diğer popup'ları ultra hızlı kapat (Smithery için)"""
+    async def _handle_popups(self):
+        """Cookie consent ve diğer popup'ları kapat"""
         try:
-            # Ultra hızlı cookie consent butonu
+            # Cookie consent butonları
             cookie_buttons = [
                 "//button[contains(text(), 'Accept')]",
                 "//button[contains(text(), 'I Accept')]",
                 "//button[@id='onetrust-accept-btn-handler']",
                 "//button[contains(@class, 'cookie-accept')]",
-                "//button[contains(@class, 'consent-accept')]"
+                "//button[contains(@class, 'consent-accept')]",
+                "//button[contains(text(), 'Accept All')]",
+                "//button[contains(text(), 'Accept Cookies')]"
             ]
             
             for button_xpath in cookie_buttons:
                 try:
-                    button = WebDriverWait(self.driver, 0.5).until(  # Sadece 0.5 saniye bekle
+                    button = WebDriverWait(self.driver, 2).until(
                         EC.element_to_be_clickable((By.XPATH, button_xpath))
                     )
                     button.click()
-                    await asyncio.sleep(0.1)  # Minimum bekleme
+                    await asyncio.sleep(0.5)
                     break
                 except TimeoutException:
                     continue
             
-            # Ultra hızlı popup kapatma
+            # Popup kapatma butonları
             try:
                 close_selectors = [
                     "[data-dismiss='modal']",
                     ".modal-close",
                     ".close",
                     ".popup-close",
-                    "[aria-label='Close']"
+                    "[aria-label='Close']",
+                    ".btn-close"
                 ]
                 
                 for selector in close_selectors:
                     try:
-                        close_button = WebDriverWait(self.driver, 0.5).until(  # Sadece 0.5 saniye bekle
+                        close_button = WebDriverWait(self.driver, 2).until(
                             EC.element_to_be_clickable((By.CSS_SELECTOR, selector))
                         )
                         close_button.click()
-                        await asyncio.sleep(0.1)  # Minimum bekleme
+                        await asyncio.sleep(0.5)
                         break
                     except TimeoutException:
                         continue
@@ -168,14 +175,6 @@ class JAMAScraper:
                 
         except Exception as e:
             print(f"Popup kapatma hatası: {e}")
-    
-    async def _handle_popups_fast(self):
-        """Cookie consent ve diğer popup'ları hızlı kapat (eski versiyon)"""
-        await self._handle_popups_ultra_fast()
-    
-    async def _handle_popups(self):
-        """Cookie consent ve diğer popup'ları kapat (eski versiyon)"""
-        await self._handle_popups_ultra_fast()
     
     async def get_page_screenshots(self, url: str, save_path: str = "screenshot.png") -> bool:
         """

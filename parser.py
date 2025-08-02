@@ -54,18 +54,56 @@ class DataParser:
             'h1[data-testid="article-title"]',
             '.article-header h1',
             'h1.title',
-            '.article-title-main'
+            '.article-title-main',
+            'h1',
+            '.title',
+            '[data-testid="title"]',
+            '.article-title',
+            'h1.article-title-main',
+            '.article-header .title',
+            '.content h1',
+            'article h1',
+            '.main-content h1'
         ]
         
         for selector in selectors:
             element = self.soup.select_one(selector)
             if element:
-                return element.get_text(strip=True)
+                title = element.get_text(strip=True)
+                if title and len(title) > 5:  # Minimum başlık uzunluğu
+                    return title
         
         # Meta tag'den dene
-        meta_title = self.soup.find('meta', {'property': 'og:title'})
-        if meta_title:
-            return meta_title.get('content', '')
+        meta_selectors = [
+            'meta[property="og:title"]',
+            'meta[name="citation_title"]',
+            'meta[name="title"]',
+            'meta[property="twitter:title"]'
+        ]
+        
+        for selector in meta_selectors:
+            meta_title = self.soup.select_one(selector)
+            if meta_title:
+                title = meta_title.get('content', '')
+                if title and len(title) > 5:
+                    return title
+        
+        # JSON-LD structured data'dan dene
+        json_scripts = self.soup.find_all('script', {'type': 'application/ld+json'})
+        for script in json_scripts:
+            try:
+                import json
+                data = json.loads(script.string)
+                if isinstance(data, dict) and 'headline' in data:
+                    title = data['headline']
+                    if title and len(title) > 5:
+                        return title
+                elif isinstance(data, dict) and 'name' in data:
+                    title = data['name']
+                    if title and len(title) > 5:
+                        return title
+            except:
+                continue
         
         return "Başlık bulunamadı"
     
