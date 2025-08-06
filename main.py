@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-JAMA Abstract MCP Server
-JAMA tıp dergisi makalelerinden veri çıkarma MCP servisi
+Academic Article MCP Server
+Akademik makalelerden ana metin çıkarma MCP servisi
 """
 
 import asyncio
@@ -24,31 +24,25 @@ mcp = fastmcp.FastMCP("jama-abstract-mcp")
 
 @mcp.tool(
     name="extract_jama_article",
-    description="JAMA Network makale linkinden makale verilerini çıkarır ve JSON formatında döner"
+    description="Akademik makale URL'sinden ana metni çıkarır"
 )
 async def extract_jama_article(url: str) -> Dict[str, Any]:
     """
-    JAMA Network makale linkinden makale verilerini çıkarır ve JSON formatında döner
+    Akademik makale URL'sinden ana metni çıkarır
     
     Args:
-        url: JAMA Network makale URL'si
+        url: Akademik makale URL'si
         
     Returns:
-        JSON formatında makale özeti:
-        - title: Makalenin başlığı (string)
-        - authors: Yazar isimleri (string)
-        - population: Katılımcı bilgileri (string)
-        - intervention: Müdahale yöntemi (string)
-        - outcome: Birincil çıktı veya gözlemler (string)
-        - findings: Sonuçlar (string)
-        - settings: Yapılan yer veya merkez bilgisi (string)
-        - source_url: Makalenin URL'si (string)
+        JSON formatında makale ana metni:
+        - plain_text: Makalenin ana metni
+        - source_url: Makalenin URL'si
     """
     return await _extract_jama_article(url)
 
 async def _extract_jama_article(url: str) -> Dict[str, Any]:
     try:
-        logger.info(f"JAMA makale çıkarma başlıyor: {url}")
+        logger.info(f"Akademik makale çıkarma başlıyor: {url}")
         
         # URL doğrulama
         if "jamanetwork.com" not in url:
@@ -61,23 +55,17 @@ async def _extract_jama_article(url: str) -> Dict[str, Any]:
         if not html_content:
             return {"error": "Makale içeriği alınamadı"}
         
-        # Parser ile veri ayrıştırma
+        # Parser ile akademik makale ana metnini çıkarma
         parser = DataParser()
         article_data = parser.parse_article(html_content)
         
         # İstenen JSON yapısını oluştur
         result = {
-            "title": article_data.get("title", ""),
-            "authors": article_data.get("authors", ""),
-            "population": article_data.get("population", ""),
-            "intervention": article_data.get("intervention", ""),
-            "outcome": article_data.get("outcome", ""),
-            "findings": article_data.get("findings", ""),
-            "settings": article_data.get("settings", ""),
+            "plain_text": article_data.get("plain_text", ""),
             "source_url": url
         }
         
-        logger.info("Makale verisi başarıyla çıkarıldı")
+        logger.info("Akademik makale ana metni başarıyla çıkarıldı")
         return result
         
     except Exception as e:
@@ -88,7 +76,7 @@ if __name__ == "__main__":
     import argparse
     import os
 
-    parser = argparse.ArgumentParser(description="JAMA Abstract MCP Server")
+    parser = argparse.ArgumentParser(description="Academic Article MCP Server")
     parser.add_argument("--transport", choices=["stdio", "http"], default="stdio",
                        help="Transport protocol to use")
     parser.add_argument("--host", default="127.0.0.1",

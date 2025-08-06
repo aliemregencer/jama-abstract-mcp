@@ -1,12 +1,13 @@
-# JAMA Abstract MCP
+# Academic Article MCP
 
-JAMA Network makalelerini scraping yöntemiyle analiz eden MCP (Model Context Protocol) servisi.
+Akademik makalelerden ana metin çıkarma MCP (Model Context Protocol) servisi.
 
 ## Özellikler
 
-- JAMA Network makale linklerini otomatik olarak analiz eder
+- Akademik makale URL'lerini otomatik olarak analiz eder
 - Makale içeriğini scraping yöntemiyle çıkarır
-- İstenen alanları JSON formatında döner
+- Sadece akademik makalenin ana metnini döner
+- Navigasyon, footer, reklamlar gibi gereksiz elementleri filtreler
 - Sadece scraping yapar, içerik üretmez veya yeniden yazmaz
 
 ## Çıktı JSON Yapısı
@@ -15,13 +16,7 @@ Tool aşağıdaki alanları içeren JSON döner:
 
 ```json
 {
-  "title": "Makalenin başlığı",
-  "authors": "Yazar isimleri",
-  "population": "Katılımcı bilgileri",
-  "intervention": "Müdahale yöntemi",
-  "outcome": "Birincil çıktı veya gözlemler",
-  "findings": "Sonuçlar",
-  "settings": "Yapılan yer veya merkez bilgisi",
+  "plain_text": "Makalenin ana metni burada yer alır",
   "source_url": "Makalenin URL'si"
 }
 ```
@@ -60,13 +55,13 @@ python main.py --transport http --host 127.0.0.1 --port 8000
 
 ### extract_jama_article
 
-JAMA Network makale linkinden makale verilerini çıkarır.
+Akademik makale URL'sinden ana metni çıkarır.
 
 **Input:**
-- `url`: JAMA Network makale URL'si (string)
+- `url`: Akademik makale URL'si (string)
 
 **Output:**
-- JSON formatında makale özeti
+- JSON formatında makale ana metni
 
 **Örnek:**
 ```python
@@ -76,23 +71,42 @@ result = await extract_jama_article("https://jamanetwork.com/journals/jama/fulla
 **Örnek Çıktı:**
 ```json
 {
-  "title": "Effect of Vitamin D Supplementation on Cardiovascular Disease",
-  "authors": "John Smith, MD; Jane Doe, PhD",
-  "population": "10,000 participants aged 50-75 years",
-  "intervention": "Daily vitamin D supplementation (2000 IU)",
-  "outcome": "Primary outcome was major cardiovascular events",
-  "findings": "No significant difference in cardiovascular events between groups",
-  "settings": "Multi-center study across 50 hospitals",
-  "source_url": "https://jamanetwork.com/journals/jama/fullarticle/..."
+  "plain_text": "Guided Internet-Based Cognitive Behavior Therapy for Women With Bulimia Nervosa: A Randomized Clinical Trial\n\nAbstract\n\nImportance: Despite the rising prevalence of bulimia nervosa and the associated risks of chronicity and severe physical and psychological morbidity, access to effective treatment remains poor...\n\nObjective: To determine the effectiveness and acceptability of a guided ICBT program to treat women with bulimia nervosa in Japan...\n\nDesign, Setting, and Participants: This randomized clinical trial was conducted at 7 university hospitals in Japan...\n\nInterventions: Both the control and intervention groups received usual care...\n\nMain Outcomes and Measures: Severity of bulimia nervosa, measured by the weekly combined frequency of episodes involving binge eating and compensatory behaviors...\n\nResults: A total of 61 women met the eligibility criteria and were randomized...\n\nConclusions and Relevance: In this randomized clinical trial, the intervention group experienced a significant decrease in bulimia symptoms compared with the control group...",
+  "source_url": "https://jamanetwork.com/journals/jamanetworkopen/fullarticle/..."
 }
 ```
 
 ## Teknik Detaylar
 
 - **Scraper**: Selenium WebDriver kullanarak sayfa içeriğini çıkarır
-- **Parser**: BeautifulSoup ile HTML içeriğini analiz eder
-- **Pattern Matching**: Regex ile belirli alanları tespit eder
+- **Parser**: BeautifulSoup ile HTML içeriğini analiz eder ve akademik makale bölümlerini filtreler
+- **Academic Content Extraction**: Sadece akademik makale ana metnini çıkarır (başlık, abstract, methods, results, conclusions)
+- **Filtering**: Navigasyon, footer, reklamlar, popup'lar gibi gereksiz elementleri kaldırır
 - **Error Handling**: Kapsamlı hata yönetimi
+
+## Filtrelenen Elementler
+
+- Navigasyon bar, header, footer, site menüleri
+- Reklamlar, banner'lar, popup'lar, modal'lar
+- Cookie bildirimleri, privacy notice'lar
+- Login, signup, user menu, search
+- Social media, share buttons, comments
+- Newsletter, subscribe, back-to-top butonları
+- Script, style, iframe, embed elementleri
+- Gizli elementler (display: none)
+
+## Akademik Makale Bölümleri
+
+Tool aşağıdaki akademik makale bölümlerini çıkarır:
+
+- **Başlık ve Yazar Bilgileri**: Makale başlığı, yazar isimleri
+- **Abstract**: Makale özeti
+- **Introduction**: Giriş bölümü
+- **Methods/Methodology**: Yöntem bölümü
+- **Results/Findings**: Sonuçlar bölümü
+- **Discussion**: Tartışma bölümü
+- **Conclusion**: Sonuç bölümü
+- **References**: Kaynaklar
 
 ## Gereksinimler
 

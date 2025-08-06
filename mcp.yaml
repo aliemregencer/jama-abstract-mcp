@@ -1,6 +1,6 @@
 name: jama-abstract-mcp
 version: "1.0.0"
-description: "JAMA tıp dergisi makalelerinden veri çıkarma MCP servisi"
+description: "Akademik makalelerden ana metin çıkarma MCP servisi"
 
 server:
   command: python
@@ -11,40 +11,22 @@ server:
 
 tools:
   - name: extract_jama_article
-    description: "JAMA Network makale linkinden makale verilerini çıkarır ve JSON formatında döner"
+    description: "Akademik makale URL'sinden ana metni çıkarır"
     inputSchema:
       type: object
       properties:
         url:
           type: string
-          description: "JAMA Network makale URL'si"
+          description: "Akademik makale URL'si"
           pattern: "^https://jamanetwork\\.com/.*"
       required:
         - url
     outputSchema:
       type: object
       properties:
-        title:
+        plain_text:
           type: string
-          description: "Makalenin başlığı"
-        authors:
-          type: string
-          description: "Yazar isimleri"
-        population:
-          type: string
-          description: "Katılımcı bilgileri"
-        intervention:
-          type: string
-          description: "Müdahale yöntemi"
-        outcome:
-          type: string
-          description: "Birincil çıktı veya gözlemler"
-        findings:
-          type: string
-          description: "Sonuçlar"
-        settings:
-          type: string
-          description: "Yapılan yer veya merkez bilgisi"
+          description: "Makalenin ana metni"
         source_url:
           type: string
           description: "Makalenin URL'si"
