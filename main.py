@@ -22,7 +22,10 @@ logger = logging.getLogger(__name__)
 # FastMCP server instance
 mcp = fastmcp.FastMCP("jama-abstract-mcp")
 
-@mcp.tool()
+@mcp.tool(
+    name="extract_jama_article",
+    description="JAMA Network makale linkinden makale verilerini çıkarır ve JSON formatında döner"
+)
 async def extract_jama_article(url: str) -> Dict[str, Any]:
     """
     JAMA Network makale linkinden makale verilerini çıkarır ve JSON formatında döner

@@ -9,8 +9,48 @@ server:
     PYTHONPATH: "."
     PYTHONUNBUFFERED: "1"
 
-# FastMCP otomatik olarak @mcp.tool() decorator'larını detect eder
-# Tools kısmına manuel olarak eklemeye gerek yok
+tools:
+  - name: extract_jama_article
+    description: "JAMA Network makale linkinden makale verilerini çıkarır ve JSON formatında döner"
+    inputSchema:
+      type: object
+      properties:
+        url:
+          type: string
+          description: "JAMA Network makale URL'si"
+          pattern: "^https://jamanetwork\\.com/.*"
+      required:
+        - url
+    outputSchema:
+      type: object
+      properties:
+        title:
+          type: string
+          description: "Makalenin başlığı"
+        authors:
+          type: string
+          description: "Yazar isimleri"
+        population:
+          type: string
+          description: "Katılımcı bilgileri"
+        intervention:
+          type: string
+          description: "Müdahale yöntemi"
+        outcome:
+          type: string
+          description: "Birincil çıktı veya gözlemler"
+        findings:
+          type: string
+          description: "Sonuçlar"
+        settings:
+          type: string
+          description: "Yapılan yer veya merkez bilgisi"
+        source_url:
+          type: string
+          description: "Makalenin URL'si"
+        error:
+          type: string
+          description: "Hata mesajı (varsa)"
 
 install:
   pip:
