@@ -28,6 +28,11 @@ class DataParser:
         article_data = {
             "title": self._extract_title(),
             "authors": self._extract_authors(),
+            "population": self._extract_population(),
+            "intervention": self._extract_intervention(),
+            "outcome": self._extract_outcome(),
+            "findings": self._extract_findings(),
+            "settings": self._extract_settings(),
             "abstract": self._extract_abstract(),
             "keywords": self._extract_keywords(),
             "publication_date": self._extract_publication_date(),
@@ -48,62 +53,254 @@ class DataParser:
             'h1[data-testid="article-title"]',
             '.article-header h1',
             'h1.title',
-            '.article-title-main'
+            '.article-title-main',
+            'h1',
+            '.title',
+            '[data-testid="title"]',
+            'meta[property="og:title"]',
+            'meta[name="citation_title"]'
         ]
         
         for selector in selectors:
             element = self.soup.select_one(selector)
             if element:
-                return element.get_text(strip=True)
-        
-        # Meta tag'den dene
-        meta_title = self.soup.find('meta', {'property': 'og:title'})
-        if meta_title:
-            return meta_title.get('content', '')
+                if selector.startswith('meta'):
+                    return element.get('content', '')
+                else:
+                    return element.get_text(strip=True)
         
         return "Başlık bulunamadı"
     
-    def _extract_authors(self) -> List[Dict[str, str]]:
-        """Yazar bilgilerini çıkar"""
+    def _extract_authors(self) -> str:
+        """Yazar isimlerini string olarak çıkar"""
         authors = []
         
         # Ana yazar alanı
-        author_sections = self.soup.select('.article-authors .author, .byline .author')
+        author_selectors = [
+            '.article-authors .author',
+            '.byline .author',
+            '.authors',
+            '.author-list',
+            '[data-testid="authors"]',
+            '.contributors',
+            '.author'
+        ]
         
-        for author_element in author_sections:
-            author_info = {}
-            
-            # İsim
-            name_elem = author_element.select_one('.author-name, .name')
-            if name_elem:
-                author_info['name'] = name_elem.get_text(strip=True)
-            
-            # Derece/Ünvan
-            degree_elem = author_element.select_one('.author-degrees, .degrees')
-            if degree_elem:
-                author_info['degrees'] = degree_elem.get_text(strip=True)
-            
-            # Kurum
-            affiliation_elem = author_element.select_one('.author-affiliation, .affiliation')
-            if affiliation_elem:
-                author_info['affiliation'] = affiliation_elem.get_text(strip=True)
-            
-            if author_info:
-                authors.append(author_info)
+        for selector in author_selectors:
+            author_elements = self.soup.select(selector)
+            for author_element in author_elements:
+                # İsim
+                name_elem = author_element.select_one('.author-name, .name, span')
+                if name_elem:
+                    authors.append(name_elem.get_text(strip=True))
+                else:
+                    # Direkt element text'ini al
+                    text = author_element.get_text(strip=True)
+                    if text and len(text) > 2:
+                        authors.append(text)
         
-        # Alternatif yöntem
+        # Alternatif yöntem - tüm sayfada yazar arama
         if not authors:
-            author_text = self.soup.select_one('.article-authors, .byline')
-            if author_text:
-                # Basit string parsing
-                text = author_text.get_text(strip=True)
-                names = re.split(r'[;,]|\sand\s', text)
-                for name in names:
-                    clean_name = name.strip()
-                    if clean_name:
-                        authors.append({'name': clean_name})
+            # Meta tag'lerden yazar bilgisi
+            meta_authors = self.soup.find('meta', {'name': 'citation_author'})
+            if meta_authors:
+                authors.append(meta_authors.get('content', ''))
+            
+            # Text içinde yazar pattern'leri
+            page_text = self.soup.get_text()
+            author_patterns = [
+                r'by\s+([^\.]+)',
+                r'authors?[:\s]+([^\.]+)',
+                r'written\s+by\s+([^\.]+)'
+            ]
+            
+            for pattern in author_patterns:
+                matches = re.findall(pattern, page_text, re.IGNORECASE)
+                if matches:
+                    authors.extend([m.strip() for m in matches[0].split(',')])
+                    break
         
-        return authors
+        return ", ".join(authors) if authors else "Yazar bilgisi bulunamadı"
+    
+    def _extract_population(self) -> str:
+        """Katılımcı bilgilerini çıkar"""
+        # Structured abstract'tan population bilgisi
+        population_selectors = [
+            '.abstract-participants',
+            '.participants',
+            '[data-testid="participants"]',
+            '.population',
+            '.study-population'
+        ]
+        
+        for selector in population_selectors:
+            elem = self.soup.select_one(selector)
+            if elem:
+                return elem.get_text(strip=True)
+        
+        # Abstract içinde population arama
+        abstract_elem = self.soup.select_one('.article-abstract, .abstract-content, #abstract')
+        if abstract_elem:
+            abstract_text = abstract_elem.get_text()
+            # Population ile ilgili cümleleri bul
+            population_patterns = [
+                r'participants?[^.]*\.',
+                r'patients?[^.]*\.',
+                r'subjects?[^.]*\.',
+                r'individuals?[^.]*\.',
+                r'cohort[^.]*\.'
+            ]
+            
+            for pattern in population_patterns:
+                matches = re.findall(pattern, abstract_text, re.IGNORECASE)
+                if matches:
+                    return matches[0].strip()
+        
+        return "Katılımcı bilgisi bulunamadı"
+    
+    def _extract_intervention(self) -> str:
+        """Müdahale yöntemini çıkar"""
+        # Structured abstract'tan intervention bilgisi
+        intervention_selectors = [
+            '.abstract-intervention',
+            '.intervention',
+            '[data-testid="intervention"]',
+            '.treatment',
+            '.method'
+        ]
+        
+        for selector in intervention_selectors:
+            elem = self.soup.select_one(selector)
+            if elem:
+                return elem.get_text(strip=True)
+        
+        # Abstract içinde intervention arama
+        abstract_elem = self.soup.select_one('.article-abstract, .abstract-content, #abstract')
+        if abstract_elem:
+            abstract_text = abstract_elem.get_text()
+            # Intervention ile ilgili cümleleri bul
+            intervention_patterns = [
+                r'intervention[^.]*\.',
+                r'treatment[^.]*\.',
+                r'therapy[^.]*\.',
+                r'procedure[^.]*\.',
+                r'method[^.]*\.'
+            ]
+            
+            for pattern in intervention_patterns:
+                matches = re.findall(pattern, abstract_text, re.IGNORECASE)
+                if matches:
+                    return matches[0].strip()
+        
+        return "Müdahale bilgisi bulunamadı"
+    
+    def _extract_outcome(self) -> str:
+        """Birincil çıktı veya gözlemleri çıkar"""
+        # Structured abstract'tan outcome bilgisi
+        outcome_selectors = [
+            '.abstract-outcomes',
+            '.outcomes',
+            '[data-testid="outcomes"]',
+            '.primary-outcome',
+            '.endpoint'
+        ]
+        
+        for selector in outcome_selectors:
+            elem = self.soup.select_one(selector)
+            if elem:
+                return elem.get_text(strip=True)
+        
+        # Abstract içinde outcome arama
+        abstract_elem = self.soup.select_one('.article-abstract, .abstract-content, #abstract')
+        if abstract_elem:
+            abstract_text = abstract_elem.get_text()
+            # Outcome ile ilgili cümleleri bul
+            outcome_patterns = [
+                r'outcome[^.]*\.',
+                r'endpoint[^.]*\.',
+                r'result[^.]*\.',
+                r'measure[^.]*\.',
+                r'primary[^.]*\.'
+            ]
+            
+            for pattern in outcome_patterns:
+                matches = re.findall(pattern, abstract_text, re.IGNORECASE)
+                if matches:
+                    return matches[0].strip()
+        
+        return "Çıktı bilgisi bulunamadı"
+    
+    def _extract_findings(self) -> str:
+        """Sonuçları çıkar"""
+        # Structured abstract'tan results bilgisi
+        findings_selectors = [
+            '.abstract-results',
+            '.results',
+            '[data-testid="results"]',
+            '.findings',
+            '.conclusion'
+        ]
+        
+        for selector in findings_selectors:
+            elem = self.soup.select_one(selector)
+            if elem:
+                return elem.get_text(strip=True)
+        
+        # Abstract içinde findings arama
+        abstract_elem = self.soup.select_one('.article-abstract, .abstract-content, #abstract')
+        if abstract_elem:
+            abstract_text = abstract_elem.get_text()
+            # Findings ile ilgili cümleleri bul
+            findings_patterns = [
+                r'result[^.]*\.',
+                r'finding[^.]*\.',
+                r'conclusion[^.]*\.',
+                r'significant[^.]*\.',
+                r'difference[^.]*\.'
+            ]
+            
+            for pattern in findings_patterns:
+                matches = re.findall(pattern, abstract_text, re.IGNORECASE)
+                if matches:
+                    return matches[0].strip()
+        
+        return "Sonuç bilgisi bulunamadı"
+    
+    def _extract_settings(self) -> str:
+        """Yapılan yer veya merkez bilgisini çıkar"""
+        # Structured abstract'tan setting bilgisi
+        settings_selectors = [
+            '.abstract-setting',
+            '.setting',
+            '[data-testid="setting"]',
+            '.location',
+            '.center'
+        ]
+        
+        for selector in settings_selectors:
+            elem = self.soup.select_one(selector)
+            if elem:
+                return elem.get_text(strip=True)
+        
+        # Abstract içinde setting arama
+        abstract_elem = self.soup.select_one('.article-abstract, .abstract-content, #abstract')
+        if abstract_elem:
+            abstract_text = abstract_elem.get_text()
+            # Setting ile ilgili cümleleri bul
+            settings_patterns = [
+                r'setting[^.]*\.',
+                r'center[^.]*\.',
+                r'hospital[^.]*\.',
+                r'clinic[^.]*\.',
+                r'location[^.]*\.'
+            ]
+            
+            for pattern in settings_patterns:
+                matches = re.findall(pattern, abstract_text, re.IGNORECASE)
+                if matches:
+                    return matches[0].strip()
+        
+        return "Yer bilgisi bulunamadı"
     
     def _extract_abstract(self) -> Dict[str, str]:
         """Abstract çıkar"""

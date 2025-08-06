@@ -1,68 +1,105 @@
 # JAMA Abstract MCP
 
-JAMA tıp dergisi makalelerinden veri çıkarma MCP servisi.
+JAMA Network makalelerini scraping yöntemiyle analiz eden MCP (Model Context Protocol) servisi.
 
-## 🚀 Özellikler
+## Özellikler
 
-Bu MCP servisi JAMA makalelerinden veri çıkarma ve abstract görsellerini alma işlemlerini gerçekleştirir.
+- JAMA Network makale linklerini otomatik olarak analiz eder
+- Makale içeriğini scraping yöntemiyle çıkarır
+- İstenen alanları JSON formatında döner
+- Sadece scraping yapar, içerik üretmez veya yeniden yazmaz
 
-### ✅ Test Sonuçları
+## Çıktı JSON Yapısı
 
-- **Scraping**: ✅ Başarılı
-- **Parsing**: ✅ Başarılı  
-- **MCP Server**: ✅ Başarılı
+Tool aşağıdaki alanları içeren JSON döner:
 
-### 📋 Available Tools
-
-1. **extract_jama_article** - JAMA makale linkinden makale verilerini çıkarır
-2. **get_article_visual** - Varsa makalenin abstract görselini alır
-
-### 🔧 Configuration
-
-```yaml
-# mcp.yaml
-server:
-  command: python
-  args: ["main.py", "--transport", "stdio"]
-  env:
-    PYTHONPATH: "."
-    PYTHONUNBUFFERED: "1"
+```json
+{
+  "title": "Makalenin başlığı",
+  "authors": "Yazar isimleri",
+  "population": "Katılımcı bilgileri",
+  "intervention": "Müdahale yöntemi",
+  "outcome": "Birincil çıktı veya gözlemler",
+  "findings": "Sonuçlar",
+  "settings": "Yapılan yer veya merkez bilgisi",
+  "source_url": "Makalenin URL'si"
+}
 ```
 
-### 📊 Performance
+## Kurulum
 
-- **Scraping**: ~15-30 saniye
-- **Parsing**: ~1-2 saniye
-- **Total Process**: ~20-35 saniye
+1. Python 3.8+ gerekli
+2. Virtual environment oluşturun:
+   ```bash
+   python -m venv venv
+   source venv/bin/activate  # Linux/Mac
+   # veya
+   .\venv\Scripts\Activate.ps1  # Windows
+   ```
 
-## 🎯 Kullanım
+3. Bağımlılıkları yükleyin:
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-JAMA makale URL'leri ile kullanılabilir:
+## Kullanım
 
+### MCP Server Olarak
+
+```bash
+python main.py
 ```
-https://jamanetwork.com/journals/jama/article-abstract/[article-id]
+
+### HTTP Server Olarak
+
+```bash
+python main.py --transport http --host 127.0.0.1 --port 8000
 ```
 
-### Tool Kullanımı
+## Tool Kullanımı
 
-#### 1. extract_jama_article
-Makale linkinden tüm makale verilerini çıkarır:
-- Başlık
-- Yazarlar
-- Abstract
-- Anahtar kelimeler
-- Yayın tarihi
-- Dergi bilgileri
-- DOI
+### extract_jama_article
 
-#### 2. get_article_visual
-Makale linkinden abstract görselini alır (varsa):
-- Görsel URL'si
-- Makale başlığı
-- Görsel varlık durumu
+JAMA Network makale linkinden makale verilerini çıkarır.
 
-## 📖 Detaylı Bilgi
+**Input:**
+- `url`: JAMA Network makale URL'si (string)
 
-Detaylı deployment bilgileri için `DEPLOYMENT.md` dosyasına bakın.
+**Output:**
+- JSON formatında makale özeti
 
-Proje tamamen çalışır durumda! 🎉
+**Örnek:**
+```python
+result = await extract_jama_article("https://jamanetwork.com/journals/jama/fullarticle/...")
+```
+
+**Örnek Çıktı:**
+```json
+{
+  "title": "Effect of Vitamin D Supplementation on Cardiovascular Disease",
+  "authors": "John Smith, MD; Jane Doe, PhD",
+  "population": "10,000 participants aged 50-75 years",
+  "intervention": "Daily vitamin D supplementation (2000 IU)",
+  "outcome": "Primary outcome was major cardiovascular events",
+  "findings": "No significant difference in cardiovascular events between groups",
+  "settings": "Multi-center study across 50 hospitals",
+  "source_url": "https://jamanetwork.com/journals/jama/fullarticle/..."
+}
+```
+
+## Teknik Detaylar
+
+- **Scraper**: Selenium WebDriver kullanarak sayfa içeriğini çıkarır
+- **Parser**: BeautifulSoup ile HTML içeriğini analiz eder
+- **Pattern Matching**: Regex ile belirli alanları tespit eder
+- **Error Handling**: Kapsamlı hata yönetimi
+
+## Gereksinimler
+
+- Chrome/Chromium tarayıcısı (WebDriver otomatik kurulur)
+- Python 3.8+
+- Internet bağlantısı
+
+## Lisans
+
+MIT License

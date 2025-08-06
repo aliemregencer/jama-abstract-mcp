@@ -25,13 +25,21 @@ mcp = fastmcp.FastMCP("jama-abstract-mcp")
 @mcp.tool()
 async def extract_jama_article(url: str) -> Dict[str, Any]:
     """
-    JAMA makale linkinden makale verilerini çıkarır
+    JAMA Network makale linkinden makale verilerini çıkarır ve JSON formatında döner
     
     Args:
-        url: JAMA makale URL'si
+        url: JAMA Network makale URL'si
         
     Returns:
-        Çıkarılan makale verileri (başlık, yazarlar, özet, vb.)
+        JSON formatında makale özeti:
+        - title: Makalenin başlığı (string)
+        - authors: Yazar isimleri (string)
+        - population: Katılımcı bilgileri (string)
+        - intervention: Müdahale yöntemi (string)
+        - outcome: Birincil çıktı veya gözlemler (string)
+        - findings: Sonuçlar (string)
+        - settings: Yapılan yer veya merkez bilgisi (string)
+        - source_url: Makalenin URL'si (string)
     """
     return await _extract_jama_article(url)
 
@@ -54,73 +62,24 @@ async def _extract_jama_article(url: str) -> Dict[str, Any]:
         parser = DataParser()
         article_data = parser.parse_article(html_content)
         
-        logger.info("Makale verisi başarıyla çıkarıldı")
-        return {
-            "success": True,
-            "data": article_data,
+        # İstenen JSON yapısını oluştur
+        result = {
+            "title": article_data.get("title", ""),
+            "authors": article_data.get("authors", ""),
+            "population": article_data.get("population", ""),
+            "intervention": article_data.get("intervention", ""),
+            "outcome": article_data.get("outcome", ""),
+            "findings": article_data.get("findings", ""),
+            "settings": article_data.get("settings", ""),
             "source_url": url
         }
+        
+        logger.info("Makale verisi başarıyla çıkarıldı")
+        return result
         
     except Exception as e:
         logger.error(f"extract_jama_article hatası: {e}")
         return {"error": f"Veri çıkarma hatası: {str(e)}"}
-
-@mcp.tool()
-async def get_article_visual(url: str) -> Dict[str, Any]:
-    """
-    JAMA makale linkinden abstract görselini alır (varsa)
-    
-    Args:
-        url: JAMA makale URL'si
-        
-    Returns:
-        Abstract görsel URL'si ve metadata (varsa)
-    """
-    return await _get_article_visual(url)
-
-async def _get_article_visual(url: str) -> Dict[str, Any]:
-    try:
-        logger.info(f"Abstract görsel alma başlıyor: {url}")
-        
-        # URL doğrulama
-        if "jamanetwork.com" not in url:
-            return {"error": "Geçersiz JAMA URL'si"}
-        
-        # Scraper ile veri çıkarma
-        scraper = JAMAScraper(headless=True, timeout=8)
-        html_content = await scraper.scrape_article(url)
-        
-        if not html_content:
-            return {"error": "Makale içeriği alınamadı"}
-        
-        # Parser ile görsel URL'sini çıkar
-        parser = DataParser()
-        article_data = parser.parse_article(html_content)
-        
-        existing_visual_url = article_data.get("existing_visual_url")
-        
-        if existing_visual_url:
-            logger.info("Abstract görsel bulundu")
-            return {
-                "success": True,
-                "visual_url": existing_visual_url,
-                "article_title": article_data.get("title", ""),
-                "source_url": url,
-                "has_visual": True
-            }
-        else:
-            logger.info("Bu makalede abstract görsel bulunamadı")
-            return {
-                "success": True,
-                "has_visual": False,
-                "article_title": article_data.get("title", ""),
-                "source_url": url,
-                "message": "Bu makalede abstract görsel bulunamadı"
-            }
-        
-    except Exception as e:
-        logger.error(f"get_article_visual hatası: {e}")
-        return {"error": f"Görsel alma hatası: {str(e)}"}
 
 if __name__ == "__main__":
     import argparse
